@@ -10666,76 +10666,56 @@ end)
 
 
 runFunction(function()
-    local deb
-    local con
-    local client = require(game:GetService("ReplicatedStorage"):WaitForChild("TS"):WaitForChild("remotes")).default.Client
-    local lplr = game:GetService("Players").LocalPlayer
+    local hasTeleported = false
+    local TweenService = game:GetService("TweenService")
 
-    function fetchBed()
-        local selectedBed
-        for _, bed in next, workspace:GetChildren() do
-            if bed.Name == "bed" and not selectedBed then
-                local covers = bed:WaitForChild("Covers")
-                
-                if lplr.TeamColor ~= covers.BrickColor then
-                    selectedBed = bed
+    function findNearestBed()
+        local nearestBed = nil
+        local minDistance = math.huge
+        
+        for _,v in pairs(game.Workspace:GetDescendants()) do
+            if v.Name:lower() == "bed" and v:FindFirstChild("Covers") and v:FindFirstChild("Covers").BrickColor ~= lplr.Team.TeamColor then
+                local distance = (v.Position - lplr.Character.HumanoidRootPart.Position).magnitude
+                if distance < minDistance then
+                    nearestBed = v
+                    minDistance = distance
                 end
             end
         end
-        return (selectedBed)
+        
+        return nearestBed
     end
 
-    deb = GuiLibrary.ObjectsThatCanBeSaved.UtilityWindow.Api.CreateOptionsButton({
-        Name = "Allah's BedTP", 
+    function tweenToNearestBed()
+        local nearestBed = findNearestBed()
+        
+        if nearestBed and not hasTeleported then
+            hasTeleported = true
+
+            local tweenInfo = TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.Out, 0, false, 0)
+            
+			local tween = TweenService:Create(lplr.Character.HumanoidRootPart, TweenInfo.new(0.965), {CFrame = nearestBed.CFrame + Vector3.new(0, 3, 0)})
+            tween:Play()
+        end
+    end
+
+    BedTp = GuiLibrary.ObjectsThatCanBeSaved.BlatantWindow.Api.CreateOptionsButton({
+        Name = "BedTp ft snoopy",
         Function = function(callback)
             if callback then
-            GuiLibrary["MainGui"].ScaledGui.ClickGui.Version.Text = "Azura v1"
-             GuiLibrary["MainGui"].ScaledGui.ClickGui.MainWindow.TextLabel.Text = "Azura v1"
-             GuiLibrary["MainGui"].ScaledGui.ClickGui.Version.Version.Text = "Azura v1"
-              GuiLibrary["MainGui"].ScaledGui.ClickGui.Version.Position = UDim2.new(1, -175 - 20, 1, -25)
-               warnnotify("BedTP","Enabled.", 5)
-                lplr = game:GetService("Players").LocalPlayer
-                chr = lplr.Character
-
-                if lplr and chr then
-                    local bed = fetchBed()
-                    local tppos2 = bed.Position + Vector3.new(0, 10, 0)
-                    local hum = chr:FindFirstChildWhichIsA("Humanoid")
-                    con = lplr.CharacterAdded:Connect(function(chr)
-                        con:Disconnect()
-                        task.wait(.5)
-                        local root = chr:WaitForChild("HumanoidRootPart")
-                        local check = (lplr:GetAttribute("LastTeleported") - lplr:GetAttribute("SpawnTime")) < 1
-                        con = game:GetService("RunService").Heartbeat:Connect(function(dt)
-                            local dist = ((check and 700 or 1200) * dt)
-                                        if (tppos2 - root.CFrame.p).Magnitude > dist then
-                                            root.CFrame = root.CFrame + (tppos2 - root.CFrame.p).Unit * dist
-                                            local yes = (tppos2 - root.CFrame.p).Unit * 20
-                                            root.Velocity = Vector3.new(yes.X, root.Velocity.Y, yes.Z)
-                                        else
-                                            root.CFrame = root.CFrame + (tppos2 - root.CFrame.p)
-                                        end
-                        end)
-
-                        repeat
-                            task.wait()
-                        until (tppos2 - root.CFrame.p).Magnitude < 10
-
-                        con:Disconnect()
-                    end)
-
-                    for _ = 1, 10, 1 do
-                        hum:ChangeState(Enum.HumanoidStateType.Dead)
-                        hum.Health = 0
-                    end
-                    -- client:Get("ResetCharacter"):SendToServer()
-                end
-                deb.ToggleButton(false)
+                lplr.Character:FindFirstChildOfClass("Humanoid"):ChangeState(Enum.HumanoidStateType.Dead)
+                lplr.CharacterAdded:Connect(function()
+                    wait(0.3) 
+                    tweenToNearestBed()
+                end)
+                hasTeleported = false
+                BedTp["ToggleButton"](false)
             end
         end,
-        HoverText = "Bed TP or teleportation to a random bed",
+        ["HoverText"] = "Tp To Closest Bed | Works in 30v30 😱 omg ty snoopy :)"
     })
 end)
+
 
 runFunction(function()
     local InfiniteYield = {["Enabled"] = false}
