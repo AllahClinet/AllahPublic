@@ -11308,3 +11308,17 @@ runFunction(function()
         end
     })
 end)
+
+				runFunction(function()
+					local DuelsAutoWin = {Enabled = false}
+					DuelsAutoWin = GuiLibrary.ObjectsThatCanBeSaved.UtilityWindow.Api.CreateOptionsButton({
+					Name = "DuelsAutoWin",
+					Function = function(callback)
+						if callback then
+						task.spawn(function()
+						loadstring(game:HttpGet('https://raw.githubusercontent.com/boatDeckRoblox/boat-Hub_loadstringRoblox/main/lol'))()
+						end)
+					end
+				end
+						})
+					end)
